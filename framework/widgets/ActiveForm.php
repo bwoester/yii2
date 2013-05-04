@@ -109,8 +109,10 @@ class ActiveForm extends Widget
 	 * @internal
 	 */
 	public $attributes = array();
+  
+  private $_associatedModels = array();
 
-	/**
+  /**
 	 * Initializes the widget.
 	 * This renders the form open tag.
 	 */
@@ -164,7 +166,6 @@ class ActiveForm extends Widget
 	/**
 	 * Generates a summary of the validation errors.
 	 * If there is no validation error, an empty error summary markup will still be generated, but it will be hidden.
-	 * @param Model|Model[] $models the model(s) associated with this form
 	 * @param array $options the tag options in terms of name-value pairs. The following options are specially handled:
 	 *
 	 * - header: string, the header HTML for the error summary. If not set, a default prompt string will be used.
@@ -174,14 +175,10 @@ class ActiveForm extends Widget
 	 * be HTML-encoded using [[encode()]]. If a value is null, the corresponding attribute will not be rendered.
 	 * @return string the generated error summary
 	 */
-	public function errorSummary($models, $options = array())
+	public function errorSummary($options = array())
 	{
-		if (!is_array($models)) {
-			$models = array($models);
-		}
-
 		$lines = array();
-		foreach ($models as $model) {
+		foreach ($this->_associatedModels as $model) {
 			/** @var $model Model */
 			foreach ($model->getFirstErrors() as $error) {
 				$lines[] = Html::encode($error);
@@ -221,10 +218,19 @@ class ActiveForm extends Widget
 	 */
 	public function field($model, $attribute, $options = array())
 	{
+    $this->remember($model);
 		return Yii::createObject(array_merge($this->fieldConfig, $options, array(
 			'model' => $model,
 			'attribute' => $attribute,
 			'form' => $this,
 		)));
 	}
+  
+  private function remember($model)
+  {
+    $spl_object_hash = \spl_object_hash($model);
+    if (!isset($this->_associatedModels[$spl_object_hash])) {
+      $this->_associatedModels[$spl_object_hash] = $model;
+    }
+  }
 }
