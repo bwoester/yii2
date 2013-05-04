@@ -111,7 +111,19 @@ class ActiveForm extends Widget
 	public $attributes = array();
   
   private $_associatedModels = array();
+  private $_model = null;
 
+  public function setModel($model)
+  {
+    $this->remember($model);
+    $this->_model = $model;
+  }
+  
+  public function getModel()
+  {
+    return $this->_model;
+  }
+  
   /**
 	 * Initializes the widget.
 	 * This renders the form open tag.
@@ -209,18 +221,16 @@ class ActiveForm extends Widget
 	 * Generates a form field.
 	 * A form field is associated with a model and an attribute. It contains a label, an input and an error message
 	 * and use them to interact with end users to collect their inputs for the attribute.
-	 * @param Model $model the data model
 	 * @param string $attribute the attribute name or expression. See [[Html::getAttributeName()]] for the format
 	 * about attribute expression.
 	 * @param array $options the additional configurations for the field object
 	 * @return ActiveField the created ActiveField object
 	 * @see fieldConfig
 	 */
-	public function field($model, $attribute, $options = array())
+	public function field($attribute, $options = array())
 	{
-    $this->remember($model);
 		return Yii::createObject(array_merge($this->fieldConfig, $options, array(
-			'model' => $model,
+			'model' => $this->_model,
 			'attribute' => $attribute,
 			'form' => $this,
 		)));

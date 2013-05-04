@@ -20,13 +20,14 @@ $this->title = 'Contact';
 </p>
 
 <?php $form = $this->beginWidget('yii\widgets\ActiveForm', array(
+  'model' => $model,
 	'options' => array('class' => 'form-horizontal'),
 	'fieldConfig' => array('inputOptions' => array('class' => 'input-xlarge')),
 )); ?>
-	<?php echo $form->field($model, 'name')->textInput(); ?>
-	<?php echo $form->field($model, 'email')->textInput(); ?>
-	<?php echo $form->field($model, 'subject')->textInput(); ?>
-	<?php echo $form->field($model, 'body')->textArea(array('rows' => 6)); ?>
+	<?php echo $form->field('name')->textInput(); ?>
+	<?php echo $form->field('email')->textInput(); ?>
+	<?php echo $form->field('subject')->textInput(); ?>
+	<?php echo $form->field('body')->textArea(array('rows' => 6)); ?>
 	<div class="form-actions">
 		<?php echo Html::submitButton('Submit', null, null, array('class' => 'btn btn-primary')); ?>
 	</div>
