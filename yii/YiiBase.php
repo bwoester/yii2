@@ -628,7 +628,7 @@ class YiiBase
 	 * t( $category, $message, $aMessageParams, $language )
 	 * @return string the translated message.
 	 */
-	public static function t( $categoryOrMessage, $messageOrParams, $paramsOrLanguage=null, $language=null )
+	public static function t( $categoryOrMessage, $messageOrParams=null, $paramsOrLanguage=null, $language=null )
 	{
 		$dafaultCategory = 'app';
 		$dafaultParams = array();
