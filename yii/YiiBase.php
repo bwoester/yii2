@@ -575,41 +575,101 @@ class YiiBase
 	{
 		return 'Powered by <a href="http://www.yiiframework.com/" rel="external">Yii Framework</a>.';
 	}
-
+	
 	/**
 	 * Translates a message to the specified language.
 	 *
-	 * The translation will be conducted according to the message category and the target language.
-	 * To specify the category of the message, prefix the message with the category name and separate it
-	 * with "|". For example, "app|hello world". If the category is not specified, the default category "app"
-	 * will be used. The actual message translation is done by a [[\yii\i18n\MessageSource|message source]].
+	 * You can call this method in one of the following ways:
+	 * 
+	 * ~~~
+	 * Yii::t( $message )
+	 * Yii::t( $message, $params )
+	 * Yii::t( $message, $params, $language )
+	 * Yii::t( $category, $message )
+	 * Yii::t( $category, $message, $params )
+	 * Yii::t( $category, $message, $params, $language )
+	 * ~~~
+	 * 
+	 * The translation will be conducted according to the message category and
+	 * the target language. If specified, `$language` must be a language code
+	 * (e.g. `en_US`, `en`). If the target language is not specified, the
+	 * the current [[\yii\base\Application::language|application language]] will
+	 * be used. If the category is not specified, the default
+	 * category "app" will be used. The actual message translation is done by a
+	 * [[\yii\i18n\MessageSource|message source]].
 	 *
-	 * In case when a translated message has different plural forms (separated by "|"), this method
-	 * will also attempt to choose an appropriate one according to a given numeric value which is
-	 * specified as the first parameter (indexed by 0) in `$params`.
+	 * The optional params array can contain key value pairs that will be used to
+	 * replace the corresponding placeholders in the message.
+	 * 
+	 * For example, if a translated message is "I like {fruits}.", and the
+	 * params array is array( '{fruits}' => 'apples' ), the message returned will
+	 * be "I like apples.".
+	 * 
+	 * In case when a translated message has different plural forms
+	 * (separated by "|"), this method will also attempt to choose an appropriate
+	 * one according to a given numeric value which is specified as the first
+	 * parameter (indexed by 0) in `$params`.
 	 *
-	 * For example, if a translated message is "I have an apple.|I have {n} apples.", and the first
-	 * parameter is 2, the message returned will be "I have 2 apples.". Note that the placeholder "{n}"
-	 * will be replaced with the given number.
+	 * For example, if a translated message is "I have an apple.|I have {n} apples.",
+	 * and the first parameter is 2, the message returned will be
+	 * "I have 2 apples.". Note that the placeholder "{n}" will be replaced with
+	 * the given number.
 	 *
 	 * For more details on how plural rules are applied, please refer to:
 	 * [[http://www.unicode.org/cldr/charts/supplemental/language_plural_rules.html]]
 	 *
-	 * @param string $message the message to be translated.
-	 * @param array $params the parameters that will be used to replace the corresponding placeholders in the message.
-	 * @param string $language the language code (e.g. `en_US`, `en`). If this is null, the current
-	 * [[\yii\base\Application::language|application language]] will be used.
+	 * @param string $categoryOrMessage the message's category or the message to be translated.
+	 * @param mixed ... depends on how you call the method. Valid syntax variants for calling the method are
+	 * t( $message )
+	 * t( $message, $aMessageParams )
+	 * t( $message, $aMessageParams, $language )
+	 * t( $category, $message )
+	 * t( $category, $message, $aMessageParams )
+	 * t( $category, $message, $aMessageParams, $language )
 	 * @return string the translated message.
 	 */
-	public static function t($message, $params = array(), $language = null)
+	public static function t( $categoryOrMessage, $messageOrParams, $paramsOrLanguage=null, $language=null )
 	{
+		$dafaultCategory = 'app';
+		$dafaultParams = array();
+		$dafaultLanguage = null;
+		
+		$nArgs = func_num_args();
+		
+		// handle signature t( message: string )
+		if ($nArgs === 1) {
+			$category = $dafaultCategory;
+			$message = $categoryOrMessage;
+			$params = $dafaultParams;
+			$language = $dafaultLanguage;
+		}
+		// handle signatures
+		// t( message: string, params: array )
+		// t( message: string, params: array, language: string )
+		elseif ($nArgs >= 2 && is_array($messageOrParams)) {
+			$category = $dafaultCategory;
+			$message = $categoryOrMessage;
+			$params = $messageOrParams;
+			$language = $nArgs === 3 ? $paramsOrLanguage : $dafaultLanguage;
+		}
+		// handle signatures
+		// t( category: string, message: string )
+		// t( category: string, message: string, params: array )
+		// t( category: string, message: string, params: array, language: string )
+		elseif ($nArgs >= 2) {
+			$category = $categoryOrMessage;
+			$message = $messageOrParams;
+			$params = $nArgs >= 3 ? $paramsOrLanguage : $dafaultParams;
+			$language = $nArgs === 4 ? $language : $dafaultLanguage;
+		}
+		
 		if (self::$app !== null) {
+			// TODO remove string mangling from l18n component
+			$message = "{$category}|{$message}";
 			return self::$app->getI18N()->translate($message, $params, $language);
 		} else {
-			if (strpos($message, '|') !== false && preg_match('/^([\w\-\\/\.\\\\]+)\|(.*)/', $message, $matches)) {
-				$message = $matches[2];
-			}
-			return is_array($params) ? strtr($message, $params) : $message;
-		}
+			// TODO fixme handle plural forms
+			return empty($params) ? $message : strtr($message, $params);
+		}		
 	}
 }
